@@ -17,7 +17,7 @@ func demo() {
 	list := ListƒFoo{Foo{val: "one"}, Foo{val: "two"}, Foo{val: "three"}}
 	maybeTwo := list.
 		Filter(func(it Foo) bool { return len(it.val) == 3 }).
-		First(func(it Foo) bool { return it.val[1] == 'w' })
+		Find(func(it Foo) bool { return it.val[1] == 'w' })
 	fmt.Println(maybeTwo.
 		Filter(func(it Foo) bool { return it.val[2] == 'o' }).
 		MapToBar(func(it Foo) Bar { return Bar{val: strings.ToUpper(it.val)} }).
@@ -29,6 +29,6 @@ func (o FooɁ) MapToBar(transformation func(Foo) Bar) BarɁ {
 	if o.IsEmpty() {
 		return NoneBar
 	} else {
-		return SomeBarɁ(transformation(o.Get()))
+		return SomeBar(transformation(o.Get()))
 	}
 }

@@ -52,7 +52,7 @@ type {{.}}Ɂ struct {
 	val *{{.}}
 }
 
-func Some{{.}}Ɂ(it {{.}}) {{.}}Ɂ {
+func Some{{.}}(it {{.}}) {{.}}Ɂ {
 	return {{.}}Ɂ{ val: &it }
 }
 
@@ -102,56 +102,154 @@ func (l Listƒ{{.}}) Size() int {
 }
 
 // Contains checks if all elements in the specified collection are contained in this collection.
-func (l Listƒ{{.}}) Contains(element {{.}}) bool {
+func (l Listƒ{{.}}) Contains(elements ... {{.}}) bool {
 	for _, e := range l {
-		if e == element {
-			return true
+		for i, el := range elements {
+			if e == el {
+				k := len(elements)
+				if k == 1 {
+					return true
+				}
+				elements[k-1], elements[i] = elements[i], elements[k-1]
+				elements = elements[:k-1]
+			}
 		}
 	}
 	return false
 }
 
-// Filter returns a new Listƒ{{.}} with only elements matching the given predicate.
-func (l Listƒ{{.}}) Filter(predicate Predicateƒ{{.}}) Listƒ{{.}} {
+// Filter returns a new Listƒ{{.}} with only elements matching the given predicates.
+func (l Listƒ{{.}}) Filter(predicates ... Predicateƒ{{.}}) Listƒ{{.}} {
 	filtered := Listƒ{{.}}{}
+	LOOP:
 	for _, e := range l {
-		if predicate(e) {
-			filtered = append(filtered, e)
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
 		}
+		filtered = append(filtered, e)
 	}
 	return filtered
 }
 
-// First returns first element matching the given predicate.
-func (l Listƒ{{.}}) First(predicate Predicateƒ{{.}}) {{.}}Ɂ {
+// First returns first element matching the given predicates.
+func (l Listƒ{{.}}) Find(predicates ... Predicateƒ{{.}}) {{.}}Ɂ {
+	LOOP:
 	for _, e := range l {
-		if predicate(e) {
-			return Some{{.}}Ɂ(e)
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
 		}
+		return Some{{.}}(e)
 	}
 	return None{{.}}
 }
 
-// All returns true if all elements match the given predicate.
-func (l Listƒ{{.}}) All(predicate Predicateƒ{{.}}) bool {
+// All returns true if all elements match the given predicates.
+func (l Listƒ{{.}}) All(predicates ... Predicateƒ{{.}}) bool {
 	for _, e := range l {
-		if !predicate(e) {
-			return false
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				return false
+			}
 		}
 	}
 	return true
 }
 
-// Any returns true if any elements match the given predicate.
-func (l Listƒ{{.}}) Any(predicate Predicateƒ{{.}}) bool {
+// Any returns true if any elements match the given predicates.
+func (l Listƒ{{.}}) Any(predicates ... Predicateƒ{{.}}) bool {
+	LOOP:
 	for _, e := range l {
-		if predicate(e) {
-			return true
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
 		}
+		return true
 	}
 	return false
 }
-		
+
+// Count returns the number of elements matching the given predicates.
+func (l Listƒ{{.}}) Count(predicates ... Predicateƒ{{.}}) int {
+	count := 0
+	LOOP:
+	for _, e := range l {
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
+		}
+		count += 1
+	}
+	return count
+}
+
+// Distinct returns a list containing only distinct elements from the given collection.
+func (l Listƒ{{.}}) Distinct(predicates ... Predicateƒ{{.}}) Listƒ{{.}} {
+	uniq := map[{{.}}]struct{}{}
+	for _, e := range l {
+		uniq[e] = struct{}{}
+	}
+	var distinct Listƒ{{.}}
+	for e := range uniq {
+		distinct = append(distinct, e)
+	}
+	return distinct
+}
+
+func (l Listƒ{{.}}) Intersect(other Listƒ{{.}}) Listƒ{{.}} {
+	var intersect Listƒ{{.}}
+	for _, e := range l {
+		if other.Contains(e) {
+			intersect = append(intersect, e)
+		}
+	}
+	return intersect
+}
+
+func (l Listƒ{{.}}) MinBy(comparator func(a, b {{.}}) int) {{.}}Ɂ {
+	if len(l) == 0 {
+		return None{{.}}
+	}
+	min := l[0]
+	for _, e := range l[1:] {
+		if comparator(e, min) < 0 {
+			min = e
+		}
+	}
+	return Some{{.}}(min)
+}
+
+func (l Listƒ{{.}}) MaxBy(comparator func(a, b {{.}}) int) {{.}}Ɂ {
+	if len(l) == 0 {
+		return None{{.}}
+	}
+	max := l[0]
+	for _, e := range l[1:] {
+		if comparator(e, max) > 0 {
+			max = e
+		}
+	}
+	return Some{{.}}(max)
+}
+
+func (l Listƒ{{.}}) Partition(predicate Predicateƒ{{.}}) (Listƒ{{.}}, Listƒ{{.}}) {
+	var right, left Listƒ{{.}}
+	for _, e := range l {
+		if (predicate(e)) {
+			right = append(right, e)
+		} else {
+			left = append(left, e)
+		}
+
+	}
+	return right, left
+}
+
 
 `)
 	if err != nil {

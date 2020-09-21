@@ -14,7 +14,7 @@ type FooɁ struct {
 	val *Foo
 }
 
-func SomeFooɁ(it Foo) FooɁ {
+func SomeFoo(it Foo) FooɁ {
 	return FooɁ{val: &it}
 }
 
@@ -64,52 +64,150 @@ func (l ListƒFoo) Size() int {
 }
 
 // Contains checks if all elements in the specified collection are contained in this collection.
-func (l ListƒFoo) Contains(element Foo) bool {
+func (l ListƒFoo) Contains(elements ...Foo) bool {
 	for _, e := range l {
-		if e == element {
-			return true
+		for i, el := range elements {
+			if e == el {
+				k := len(elements)
+				if k == 1 {
+					return true
+				}
+				elements[k-1], elements[i] = elements[i], elements[k-1]
+				elements = elements[:k-1]
+			}
 		}
 	}
 	return false
 }
 
-// Filter returns a new ListƒFoo with only elements matching the given predicate.
-func (l ListƒFoo) Filter(predicate PredicateƒFoo) ListƒFoo {
+// Filter returns a new ListƒFoo with only elements matching the given predicates.
+func (l ListƒFoo) Filter(predicates ...PredicateƒFoo) ListƒFoo {
 	filtered := ListƒFoo{}
+LOOP:
 	for _, e := range l {
-		if predicate(e) {
-			filtered = append(filtered, e)
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
 		}
+		filtered = append(filtered, e)
 	}
 	return filtered
 }
 
-// First returns first element matching the given predicate.
-func (l ListƒFoo) First(predicate PredicateƒFoo) FooɁ {
+// First returns first element matching the given predicates.
+func (l ListƒFoo) Find(predicates ...PredicateƒFoo) FooɁ {
+LOOP:
 	for _, e := range l {
-		if predicate(e) {
-			return SomeFooɁ(e)
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
 		}
+		return SomeFoo(e)
 	}
 	return NoneFoo
 }
 
-// All returns true if all elements match the given predicate.
-func (l ListƒFoo) All(predicate PredicateƒFoo) bool {
+// All returns true if all elements match the given predicates.
+func (l ListƒFoo) All(predicates ...PredicateƒFoo) bool {
 	for _, e := range l {
-		if !predicate(e) {
-			return false
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				return false
+			}
 		}
 	}
 	return true
 }
 
-// Any returns true if any elements match the given predicate.
-func (l ListƒFoo) Any(predicate PredicateƒFoo) bool {
+// Any returns true if any elements match the given predicates.
+func (l ListƒFoo) Any(predicates ...PredicateƒFoo) bool {
+LOOP:
 	for _, e := range l {
-		if predicate(e) {
-			return true
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
 		}
+		return true
 	}
 	return false
+}
+
+// Count returns the number of elements matching the given predicates.
+func (l ListƒFoo) Count(predicates ...PredicateƒFoo) int {
+	count := 0
+LOOP:
+	for _, e := range l {
+		for _, predicate := range predicates {
+			if !predicate(e) {
+				continue LOOP
+			}
+		}
+		count += 1
+	}
+	return count
+}
+
+// Distinct returns a list containing only distinct elements from the given collection.
+func (l ListƒFoo) Distinct(predicates ...PredicateƒFoo) ListƒFoo {
+	uniq := map[Foo]struct{}{}
+	for _, e := range l {
+		uniq[e] = struct{}{}
+	}
+	var distinct ListƒFoo
+	for e := range uniq {
+		distinct = append(distinct, e)
+	}
+	return distinct
+}
+
+func (l ListƒFoo) Intersect(other ListƒFoo) ListƒFoo {
+	var intersect ListƒFoo
+	for _, e := range l {
+		if other.Contains(e) {
+			intersect = append(intersect, e)
+		}
+	}
+	return intersect
+}
+
+func (l ListƒFoo) MinBy(comparator func(a, b Foo) int) FooɁ {
+	if len(l) == 0 {
+		return NoneFoo
+	}
+	min := l[0]
+	for _, e := range l[1:] {
+		if comparator(e, min) < 0 {
+			min = e
+		}
+	}
+	return SomeFoo(min)
+}
+
+func (l ListƒFoo) MaxBy(comparator func(a, b Foo) int) FooɁ {
+	if len(l) == 0 {
+		return NoneFoo
+	}
+	max := l[0]
+	for _, e := range l[1:] {
+		if comparator(e, max) > 0 {
+			max = e
+		}
+	}
+	return SomeFoo(max)
+}
+
+func (l ListƒFoo) Partition(predicate PredicateƒFoo) (ListƒFoo, ListƒFoo) {
+	var right, left ListƒFoo
+	for _, e := range l {
+		if predicate(e) {
+			right = append(right, e)
+		} else {
+			left = append(left, e)
+		}
+
+	}
+	return right, left
 }
