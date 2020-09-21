@@ -2,32 +2,32 @@
 
 package example
 
-//go generate goguette -type=Foo
+//go generate goguette -type=Bar
 
-// PredicateƒFoo check a condition on Foo
-type PredicateƒFoo func(it Foo) bool
+// PredicateƒBar check a condition on Bar
+type PredicateƒBar func(it Bar) bool
 
 // --- Some or None
 
-// FooɁ hold an optional Foo value
-type FooɁ struct {
-	val *Foo
+// BarɁ hold an optional Bar value
+type BarɁ struct {
+	val *Bar
 }
 
-func SomeFooɁ(it Foo) FooɁ {
-	return FooɁ{val: &it}
+func SomeBarɁ(it Bar) BarɁ {
+	return BarɁ{val: &it}
 }
 
-// NoneFoo is a FooɁ with no value
-var NoneFoo = FooɁ{}
+// NoneBar is a BarɁ with no value
+var NoneBar = BarɁ{}
 
 //
-func (o FooɁ) IsEmpty() bool {
+func (o BarɁ) IsEmpty() bool {
 	return o.val != nil
 }
 
 // Get return the value if a value is present, otherwise panic
-func (o FooɁ) Get() Foo {
+func (o BarɁ) Get() Bar {
 	if o.val == nil {
 		panic("Invalid access to Get on None")
 	}
@@ -35,36 +35,36 @@ func (o FooɁ) Get() Foo {
 }
 
 // OrElse return the value if present, otherwise return other.
-func (o FooɁ) OrElse(other Foo) Foo {
+func (o BarɁ) OrElse(other Bar) Bar {
 	if o.val == nil {
 		return other
 	}
 	return *o.val
 }
 
-// Filter return an FooɁ describing the value is it matches the predicate, otherwise return None
-func (o FooɁ) Filter(predicate PredicateƒFoo) FooɁ {
+// Filter return an BarɁ describing the value is it matches the predicate, otherwise return None
+func (o BarɁ) Filter(predicate PredicateƒBar) BarɁ {
 	if o.val == nil {
-		return NoneFoo
+		return NoneBar
 	}
 	if predicate(*o.val) {
 		return o
 	}
-	return NoneFoo
+	return NoneBar
 }
 
 // --- List
 
-// ListƒFoo is an ordered collection of Foo
-type ListƒFoo []Foo
+// ListƒBar is an ordered collection of Bar
+type ListƒBar []Bar
 
 // Size returns the size of the collection.
-func (l ListƒFoo) Size() int {
+func (l ListƒBar) Size() int {
 	return len(l)
 }
 
 // Contains checks if all elements in the specified collection are contained in this collection.
-func (l ListƒFoo) Contains(element Foo) bool {
+func (l ListƒBar) Contains(element Bar) bool {
 	for _, e := range l {
 		if e == element {
 			return true
@@ -73,9 +73,9 @@ func (l ListƒFoo) Contains(element Foo) bool {
 	return false
 }
 
-// Filter returns a new ListƒFoo with only elements matching the given predicate.
-func (l ListƒFoo) Filter(predicate PredicateƒFoo) ListƒFoo {
-	filtered := ListƒFoo{}
+// Filter returns a new ListƒBar with only elements matching the given predicate.
+func (l ListƒBar) Filter(predicate PredicateƒBar) ListƒBar {
+	filtered := ListƒBar{}
 	for _, e := range l {
 		if predicate(e) {
 			filtered = append(filtered, e)
@@ -85,17 +85,17 @@ func (l ListƒFoo) Filter(predicate PredicateƒFoo) ListƒFoo {
 }
 
 // First returns first element matching the given predicate.
-func (l ListƒFoo) First(predicate PredicateƒFoo) FooɁ {
+func (l ListƒBar) First(predicate PredicateƒBar) BarɁ {
 	for _, e := range l {
 		if predicate(e) {
-			return SomeFooɁ(e)
+			return SomeBarɁ(e)
 		}
 	}
-	return NoneFoo
+	return NoneBar
 }
 
 // All returns true if all elements match the given predicate.
-func (l ListƒFoo) All(predicate PredicateƒFoo) bool {
+func (l ListƒBar) All(predicate PredicateƒBar) bool {
 	for _, e := range l {
 		if !predicate(e) {
 			return false
@@ -105,7 +105,7 @@ func (l ListƒFoo) All(predicate PredicateƒFoo) bool {
 }
 
 // Any returns true if any elements match the given predicate.
-func (l ListƒFoo) Any(predicate PredicateƒFoo) bool {
+func (l ListƒBar) Any(predicate PredicateƒBar) bool {
 	for _, e := range l {
 		if predicate(e) {
 			return true
