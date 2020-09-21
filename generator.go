@@ -52,6 +52,9 @@ type Listƒ{{.}} interface {
 	// Filter returns a new Listƒ{{.}} with only elements matching the given predicate.
 	Filter(predicate Predicateƒ{{.}}) Listƒ{{.}}
 
+	// First returns first element matching the given predicate.
+	First(predicate Predicateƒ{{.}}) *{{.}}
+	
 	// All returns true if all elements match the given predicate.
 	All(predicate Predicateƒ{{.}}) bool
 
@@ -61,6 +64,7 @@ type Listƒ{{.}} interface {
 
 // Predicateƒ{{.}} check a condition on {{.}}
 type Predicateƒ{{.}} func(it {{.}}) bool
+
 
 // NewListƒ{{.}} is constructor for a Listƒ{{.}}
 func NewListƒ{{.}}(elements ... {{.}}) Listƒ{{.}} {
@@ -94,6 +98,16 @@ func (l *listƒ{{.}}) Filter(predicate Predicateƒ{{.}}) Listƒ{{.}} {
 		}
 	}
 	return filtered
+}
+
+func (l *listƒ{{.}}) First(predicate Predicateƒ{{.}}) *{{.}} {
+	filtered := Listƒ{{.}}{}
+	for _, e := range l.elements {
+		if predicate(e) {
+			return &e
+		}
+	}
+	return nil
 }
 
 func (l *listƒ{{.}}) All(predicate Predicateƒ{{.}}) bool {

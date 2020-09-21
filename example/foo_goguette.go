@@ -15,6 +15,9 @@ type ListƒFoo interface {
 	// Filter returns a new ListƒFoo with only elements matching the given predicate.
 	Filter(predicate PredicateƒFoo) ListƒFoo
 
+	// First returns first element matching the given predicate.
+	First(predicate PredicateƒFoo) *Foo
+
 	// All returns true if all elements match the given predicate.
 	All(predicate PredicateƒFoo) bool
 
@@ -57,6 +60,16 @@ func (l *listƒFoo) Filter(predicate PredicateƒFoo) ListƒFoo {
 		}
 	}
 	return filtered
+}
+
+func (l *listƒFoo) First(predicate PredicateƒFoo) *Foo {
+	filtered := ListƒFoo{}
+	for _, e := range l.elements {
+		if predicate(e) {
+			return &e
+		}
+	}
+	return nil
 }
 
 func (l *listƒFoo) All(predicate PredicateƒFoo) bool {
