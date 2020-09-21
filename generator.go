@@ -10,27 +10,38 @@ import (
 	"os"
 	"path/filepath"
 	"text/template"
+	"unicode"
 )
 
 var (
-	typeName = flag.String("type", "", "type name; must be set")
+	typeFlag = flag.String("type", "", "type name; must be set")
 )
 
 func main() {
 	flag.Parse()
+
+	if *typeFlag == "" {
+		flag.Usage()
+		os.Exit(2)
+	}
+	typeName := *typeFlag
 
 	g := Generator{}
 	pkg, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("accessing pwd: %s", err)
 	}
+	g.Printf("// DO NOT EDIT, GENERATED CODE")
+	g.Println()
 	g.Printf("package %s", filepath.Base(pkg))
 	g.Println()
-	g.Printf("//go generate goguette -type=%s", *typeName)
+	g.Printf("//go generate goguette -type=%s", typeName)
 	g.Println()
 
 	tmpl, err := template.New("list").Parse(
-		`type Listƒ{{.}} struct {
+		`
+
+type Listƒ{{.}} struct {
 		elements []{{.}}	
 }
 
@@ -38,9 +49,9 @@ func (l Listƒ{{.}}) Size() int {
 	return len(l.elements)
 }
 
-func (l Listƒ{{.}}) Contains(elements {{.}}) bool {
+func (l Listƒ{{.}}) Contains(element {{.}}) bool {
 	for _, e := range l.elements {
-		if e == el {
+		if e == element {
 			return true
 		}
 	}
@@ -53,7 +64,7 @@ func (l Listƒ{{.}}) All(predicate Predicateƒ{{.}}) Listƒ{{.}} {
 	filtered := Listƒ{{.}}{}
 	for _, e := range l.elements {
 		if predicate(e) {
-			filtered = append(filtered, e)
+			filtered.elements = append(filtered.elements, e)
 		}
 	}
 	return filtered
@@ -63,18 +74,26 @@ func (l Listƒ{{.}}) All(predicate Predicateƒ{{.}}) Listƒ{{.}} {
 	if err != nil {
 		log.Fatalf("error in template: %s", err)
 	}
-	err = tmpl.Execute(&g.buf, *typeName)
+	err = tmpl.Execute(&g.buf, typeName)
 	if err != nil {
 		log.Fatalf("error applying template: %s", err)
 	}
 
-	out := fmt.Sprintf("%s_goguette.go", *typeName)
+	out := fmt.Sprintf("%s_goguette.go", lower(typeName))
 	src := g.format()
 
+	// fmt.Println(string(src))
 	err = ioutil.WriteFile(out, src, 0644)
 	if err != nil {
 		log.Fatalf("writing output: %s", err)
 	}
+}
+
+func lower(s string) string {
+	for i, v := range s {
+		return string(unicode.ToLower(v)) + s[i+1:]
+	}
+	return s
 }
 
 type Generator struct {

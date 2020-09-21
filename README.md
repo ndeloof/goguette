@@ -11,13 +11,14 @@ Generated code is hignly inspired by [Koltin's collections](https://kotlinlang.o
 
 ## generated code
 
+see [example generated code](example/foo_goguette.go).
+
 With generics support, one would define a List of Foo elements as
 `List[Foo]` ... but we're stuck in Golang 1.x, so we generate code
 as `ListƒFoo` instead. If you wonder, `ƒ` is Latin f with hook 
 [U+0192](http://www.fileformat.info/info/unicode/char/0192/index.htm). This has been chosen as it can be read "_List oƒ Foo_".
 
 Can type on Mac's keyboard using `Alt+F`, not sure how portable this is :P
-
 
 ## About the name
 
