@@ -4,15 +4,43 @@ package example
 
 //go generate goguette -type=Foo
 
-type ListƒFoo struct {
+// ListƒFoo is an ordered collection of Foo
+type ListƒFoo interface {
+	// Size returns the size of the collection.
+	Size() int
+
+	// Contains checks if all elements in the specified collection are contained in this collection.
+	Contains(element Foo) bool
+
+	// Filter returns a new ListƒFoo with only elements matching the given predicate.
+	Filter(predicate PredicateƒFoo) ListƒFoo
+
+	// All returns true if all elements match the given predicate.
+	All(predicate PredicateƒFoo) bool
+
+	// Any returns true if any elements match the given predicate.
+	Any(predicate PredicateƒFoo) bool
+}
+
+// PredicateƒFoo check a condition on Foo
+type PredicateƒFoo func(it Foo) bool
+
+// NewListƒFoo is constructor for a ListƒFoo
+func NewListƒFoo(elements ...Foo) ListƒFoo {
+	return &listƒFoo{
+		elements: elements,
+	}
+}
+
+type listƒFoo struct {
 	elements []Foo
 }
 
-func (l ListƒFoo) Size() int {
+func (l *listƒFoo) Size() int {
 	return len(l.elements)
 }
 
-func (l ListƒFoo) Contains(element Foo) bool {
+func (l *listƒFoo) Contains(element Foo) bool {
 	for _, e := range l.elements {
 		if e == element {
 			return true
@@ -21,9 +49,7 @@ func (l ListƒFoo) Contains(element Foo) bool {
 	return false
 }
 
-type PredicateƒFoo func(it Foo) bool
-
-func (l ListƒFoo) All(predicate PredicateƒFoo) ListƒFoo {
+func (l *listƒFoo) Filter(predicate PredicateƒFoo) ListƒFoo {
 	filtered := ListƒFoo{}
 	for _, e := range l.elements {
 		if predicate(e) {
@@ -31,4 +57,22 @@ func (l ListƒFoo) All(predicate PredicateƒFoo) ListƒFoo {
 		}
 	}
 	return filtered
+}
+
+func (l *listƒFoo) All(predicate PredicateƒFoo) bool {
+	for _, e := range l.elements {
+		if !predicate(e) {
+			return false
+		}
+	}
+	return true
+}
+
+func (l *listƒFoo) Any(predicate PredicateƒFoo) bool {
+	for _, e := range l.elements {
+		if predicate(e) {
+			return true
+		}
+	}
+	return false
 }

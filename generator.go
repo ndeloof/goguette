@@ -41,15 +41,43 @@ func main() {
 	tmpl, err := template.New("list").Parse(
 		`
 
-type Listƒ{{.}} struct {
+// Listƒ{{.}} is an ordered collection of {{.}}
+type Listƒ{{.}} interface {
+	// Size returns the size of the collection.
+	Size() int
+
+	// Contains checks if all elements in the specified collection are contained in this collection.
+	Contains(element {{.}}) bool
+
+	// Filter returns a new Listƒ{{.}} with only elements matching the given predicate.
+	Filter(predicate Predicateƒ{{.}}) Listƒ{{.}}
+
+	// All returns true if all elements match the given predicate.
+	All(predicate Predicateƒ{{.}}) bool
+
+	// Any returns true if any elements match the given predicate.
+	Any(predicate Predicateƒ{{.}}) bool
+}
+
+// Predicateƒ{{.}} check a condition on {{.}}
+type Predicateƒ{{.}} func(it {{.}}) bool
+
+// NewListƒ{{.}} is constructor for a Listƒ{{.}}
+func NewListƒ{{.}}(elements ... {{.}}) Listƒ{{.}} {
+	return &listƒ{{.}}{ 
+		elements: elements,
+	}
+}
+
+type listƒ{{.}} struct {
 		elements []{{.}}	
 }
 
-func (l Listƒ{{.}}) Size() int {
+func (l *listƒ{{.}}) Size() int {
 	return len(l.elements)
 }
 
-func (l Listƒ{{.}}) Contains(element {{.}}) bool {
+func (l *listƒ{{.}}) Contains(element {{.}}) bool {
 	for _, e := range l.elements {
 		if e == element {
 			return true
@@ -58,9 +86,7 @@ func (l Listƒ{{.}}) Contains(element {{.}}) bool {
 	return false
 }
 
-type Predicateƒ{{.}} func(it {{.}}) bool
-
-func (l Listƒ{{.}}) All(predicate Predicateƒ{{.}}) Listƒ{{.}} {
+func (l *listƒ{{.}}) Filter(predicate Predicateƒ{{.}}) Listƒ{{.}} {
 	filtered := Listƒ{{.}}{}
 	for _, e := range l.elements {
 		if predicate(e) {
@@ -68,6 +94,24 @@ func (l Listƒ{{.}}) All(predicate Predicateƒ{{.}}) Listƒ{{.}} {
 		}
 	}
 	return filtered
+}
+
+func (l *listƒ{{.}}) All(predicate Predicateƒ{{.}}) bool {
+	for _, e := range l.elements {
+		if !predicate(e) {
+			return false
+		}
+	}
+	return true
+}
+
+func (l *listƒ{{.}}) Any(predicate Predicateƒ{{.}}) bool {
+	for _, e := range l.elements {
+		if predicate(e) {
+			return true
+		}
+	}
+	return false
 }
 
 `)
