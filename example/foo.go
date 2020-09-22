@@ -21,7 +21,7 @@ func demo() {
 	fmt.Println(maybeTwo.
 		Filter(func(it Foo) bool { return it.val[2] == 'o' }).
 		MapToBar(func(it Foo) Bar { return Bar{val: strings.ToUpper(it.val)} }).
-		Get())
+		OrElse(Bar{val: "oups!"}))
 }
 
 // Sorry, this one you have to create manually

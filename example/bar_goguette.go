@@ -21,17 +21,30 @@ func SomeBar(it Bar) BarɁ {
 // NoneBar is a BarɁ with no value
 var NoneBar = BarɁ{}
 
-//
+// IsEmpty return true if value is not set, i.e. this is None
 func (o BarɁ) IsEmpty() bool {
 	return o.val != nil
 }
 
+func TryBarɁ(fn func() (Bar, error)) BarɁ {
+	val, err := fn()
+	if error != nil {
+		return NoneBar
+	}
+	return SomeBar(val)
+}
+
 // Get return the value if a value is present, otherwise panic
 func (o BarɁ) Get() Bar {
-	if o.val == nil {
-		panic("Invalid access to Get on None")
-	}
 	return *o.val
+}
+
+// OrElse return the value if present, otherwise return an error.
+func (o BarɁ) OrError(message string, args ...interface{}) (Bar, error) {
+	if o.val == nil {
+		return Bar{}, fmt.Errorf(message, args...)
+	}
+	return *o.val, nil
 }
 
 // OrElse return the value if present, otherwise return other.

@@ -21,17 +21,30 @@ func SomeFoo(it Foo) FooɁ {
 // NoneFoo is a FooɁ with no value
 var NoneFoo = FooɁ{}
 
-//
+// IsEmpty return true if value is not set, i.e. this is None
 func (o FooɁ) IsEmpty() bool {
 	return o.val != nil
 }
 
+func TryFooɁ(fn func() (Foo, error)) FooɁ {
+	val, err := fn()
+	if error != nil {
+		return NoneFoo
+	}
+	return SomeFoo(val)
+}
+
 // Get return the value if a value is present, otherwise panic
 func (o FooɁ) Get() Foo {
-	if o.val == nil {
-		panic("Invalid access to Get on None")
-	}
 	return *o.val
+}
+
+// OrElse return the value if present, otherwise return an error.
+func (o FooɁ) OrError(message string, args ...interface{}) (Foo, error) {
+	if o.val == nil {
+		return Foo{}, fmt.Errorf(message, args...)
+	}
+	return *o.val, nil
 }
 
 // OrElse return the value if present, otherwise return other.

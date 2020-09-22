@@ -9,37 +9,51 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 	"unicode"
 )
 
 var (
-	typeFlag = flag.String("type", "", "type name; must be set")
+	typeFlag = flag.String("type", "", "comma-separated list of type names; must be set")
 )
 
+func Usage() {
+	fmt.Fprintf(os.Stderr, "Usage of goguette:\n")
+	fmt.Fprintf(os.Stderr, "\tgoguette -type T\n")
+	fmt.Fprintf(os.Stderr, "For more information, see:\n")
+	fmt.Fprintf(os.Stderr, "\thttp://github.com/ndeloof/goguette\n")
+	fmt.Fprintf(os.Stderr, "Flags:\n")
+	flag.PrintDefaults()
+}
+
 func main() {
+	log.SetFlags(0)
+	log.SetPrefix("goguette: ")
+	flag.Usage = Usage
 	flag.Parse()
 
-	if *typeFlag == "" {
+	if len(*typeFlag) == 0 {
 		flag.Usage()
 		os.Exit(2)
 	}
-	typeName := *typeFlag
-
-	g := Generator{}
+	typeNames := strings.Split(*typeFlag, ",")
 	pkg, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("accessing pwd: %s", err)
 	}
-	g.Printf("// DO NOT EDIT, GENERATED CODE")
-	g.Println()
-	g.Printf("package %s", filepath.Base(pkg))
-	g.Println()
-	g.Printf("//go generate goguette -type=%s", typeName)
-	g.Println()
 
-	tmpl, err := template.New("list").Parse(
-		`
+	for _, typeName := range typeNames {
+		g := Generator{}
+		g.Printf("// DO NOT EDIT, GENERATED CODE")
+		g.Println()
+		g.Printf("package %s", filepath.Base(pkg))
+		g.Println()
+		g.Printf("//go generate goguette -type=%s", typeName)
+		g.Println()
+
+		tmpl, err := template.New("list").Parse(
+			`
 
 // Predicateƒ{{.}} check a condition on {{.}}
 type Predicateƒ{{.}} func(it {{.}}) bool
@@ -59,17 +73,31 @@ func Some{{.}}(it {{.}}) {{.}}Ɂ {
 // None{{.}} is a {{.}}Ɂ with no value 
 var None{{.}} = {{.}}Ɂ{}
 
-// 
+// IsEmpty return true if value is not set, i.e. this is None 
 func (o {{.}}Ɂ) IsEmpty() bool {
 	return o.val != nil
 }
 
-// Get return the value if a value is present, otherwise panic
-func (o {{.}}Ɂ) Get() {{.}} {
-	if o.val == nil {
-		panic("Invalid access to Get on None")
+func Try{{.}}Ɂ (fn func() ({{.}}, error)) {{.}}Ɂ {
+	val, err := fn()
+	if error != nil {
+		return None{{.}}
 	}
+	return Some{{.}}(val)
+}
+
+// Get return the value if a value is present, otherwise panic
+func (o {{.}}Ɂ) Get() ({{.}}) {
 	return *o.val
+}
+
+
+// OrElse return the value if present, otherwise return an error.
+func (o {{.}}Ɂ) OrError(message string, args ... interface{}) ({{.}}, error) {
+	if o.val == nil {
+		return {{.}}{}, fmt.Errorf(message, args...)
+	}
+	return *o.val, nil
 }
 
 // OrElse return the value if present, otherwise return other.
@@ -252,21 +280,22 @@ func (l Listƒ{{.}}) Partition(predicate Predicateƒ{{.}}) (Listƒ{{.}}, Listƒ{
 
 
 `)
-	if err != nil {
-		log.Fatalf("error in template: %s", err)
-	}
-	err = tmpl.Execute(&g.buf, typeName)
-	if err != nil {
-		log.Fatalf("error applying template: %s", err)
-	}
+		if err != nil {
+			log.Fatalf("error in template: %s", err)
+		}
+		err = tmpl.Execute(&g.buf, typeName)
+		if err != nil {
+			log.Fatalf("error applying template: %s", err)
+		}
 
-	out := fmt.Sprintf("%s_goguette.go", lower(typeName))
-	src := g.format()
+		out := fmt.Sprintf("%s_goguette.go", lower(typeName))
+		src := g.format()
 
-	// fmt.Println(string(src))
-	err = ioutil.WriteFile(out, src, 0644)
-	if err != nil {
-		log.Fatalf("writing output: %s", err)
+		// fmt.Println(string(src))
+		err = ioutil.WriteFile(out, src, 0644)
+		if err != nil {
+			log.Fatalf("writing output: %s", err)
+		}
 	}
 }
 
